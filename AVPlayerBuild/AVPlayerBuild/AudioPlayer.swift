@@ -165,7 +165,7 @@ class AudioPlayer: UIView {
             
             if self.updateTimer == nil
             {
-                self.updateTimer = self.player?.addPeriodicTimeObserverForInterval(CMTime(seconds: Double(1.0), preferredTimescale: 1), queue: nil, usingBlock: { (time) -> Void in
+                self.updateTimer = self.player?.addPeriodicTimeObserverForInterval(CMTimeMake(1, 1), queue: nil, usingBlock: { (time) -> Void in
                     
 //                    print(time.seconds)
                     self.updateTime(time.seconds)
@@ -209,7 +209,7 @@ class AudioPlayer: UIView {
     
     func seekToTime(seconds: Double)
     {
-        self.player?.seekToTime(CMTime(seconds: seconds, preferredTimescale: 1))
+        self.player?.seekToTime(CMTimeMake(Int64(seconds), 1))
     }
     
     func play()
