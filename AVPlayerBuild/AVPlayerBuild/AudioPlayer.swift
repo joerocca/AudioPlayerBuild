@@ -65,6 +65,7 @@ class AudioPlayer: UIView {
     
     var player: AVPlayer?
     var isPaused: Bool = false
+    var isScrubbing: Bool = false
     var updateTimer: NSTimer?
 
     
@@ -72,13 +73,21 @@ class AudioPlayer: UIView {
     
     init(frame: CGRect, audioURL: NSURL!)
     {
-        
         super.init(frame: frame)
         
         self.configureViews()
         self.configureConstraints()
         self.configureAudioPlayer(audioURL)
     
+    }
+    
+    init(audioURL: NSURL!)
+    {
+        super.init(frame: CGRectZero)
+        
+        self.configureViews()
+        self.configureConstraints()
+        self.configureAudioPlayer(audioURL)
     }
 
     required init?(coder aDecoder: NSCoder)
@@ -175,9 +184,8 @@ class AudioPlayer: UIView {
     func scrubberValueChanged(sender: UISlider)
     {
         print(sender.value)
+        self.isScrubbing = true
         self.player?.seekToTime(CMTime(seconds: Double(sender.value), preferredTimescale: 1))
-        
-        
     }
     
     
@@ -185,7 +193,10 @@ class AudioPlayer: UIView {
     
     func updateTime()
     {
-        self.scrubber.setValue(Float(self.player!.currentTime().seconds), animated: true)
+        if (!self.isScrubbing)
+        {
+            self.scrubber.setValue(Float(self.player!.currentTime().seconds), animated: true)
+        }
         self.durationLabel.text = "-\(self.formatSeconds(Float(self.player!.currentItem!.asset.duration.seconds - self.player!.currentTime().seconds)))"
         self.timeElapsedLabel.text = self.formatSeconds(Float(self.player!.currentTime().seconds))
     }

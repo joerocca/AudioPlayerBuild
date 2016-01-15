@@ -15,7 +15,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        let av = AudioPlayer(frame:  CGRectZero, audioURL: NSURL(string: "http://jrocca.com/CannedHeat.mp3"))
+        let av = AudioPlayer(audioURL: NSURL(string: "http://jrocca.com/CannedHeat.mp3"))
         av.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(av)
         
