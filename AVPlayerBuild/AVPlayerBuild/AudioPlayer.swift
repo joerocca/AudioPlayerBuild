@@ -136,6 +136,10 @@ class AudioPlayer: UIView {
     {
         let playerItem = AVPlayerItem(URL: audioURL)
         
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "playerItemDidFinishPlayer:", name: AVPlayerItemDidPlayToEndTimeNotification, object: playerItem)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "playerItemPlaybackStalled:", name: AVPlayerItemPlaybackStalledNotification, object: playerItem)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "playerItemFailedToPlayToEndTime:", name: AVPlayerItemFailedToPlayToEndTimeNotification, object: playerItem)
+        
         let durationInSeconds = Float(playerItem.asset.duration.seconds)
         
         self.scrubber.maximumValue = durationInSeconds
@@ -156,11 +160,8 @@ class AudioPlayer: UIView {
     {
         if !isPaused
         {
-            self.playButton.setTitle("Pause", forState: .Normal)
             
-            self.player?.play()
-            
-            self.isPaused = true
+            self.play()
             
             if self.updateTimer == nil
             {
@@ -176,11 +177,9 @@ class AudioPlayer: UIView {
         }
         else
         {
-            self.playButton.setTitle("Play", forState: .Normal)
             
-            self.player?.pause()
+          self.pause()
             
-            self.isPaused = false
         }
     }
     
@@ -188,12 +187,15 @@ class AudioPlayer: UIView {
     func scrubberValueChanged(sender: UISlider)
     {
         print(sender.value)
+        
+        let scrubberValue = Double(sender.value)
+        
         self.isScrubbing = true
-        self.player?.seekToTime(CMTime(seconds: Double(sender.value), preferredTimescale: 1))
+        self.seekToTime(scrubberValue)
         
         if updateTimer == nil
         {
-            self.updateTime(Double(sender.value))
+            self.updateTime(scrubberValue)
         }
     }
     
@@ -202,6 +204,31 @@ class AudioPlayer: UIView {
         self.isScrubbing = false
     }
     
+    
+    //MARK: Audio Player Tools
+    
+    func seekToTime(seconds: Double)
+    {
+        self.player?.seekToTime(CMTime(seconds: seconds, preferredTimescale: 1))
+    }
+    
+    func play()
+    {
+        self.playButton.setTitle("Pause", forState: .Normal)
+        
+        self.player?.play()
+        
+        self.isPaused = true
+    }
+    
+    func pause()
+    {
+        self.playButton.setTitle("Play", forState: .Normal)
+        
+        self.player?.pause()
+        
+        self.isPaused = false
+    }
     
     //MARK: Audio Player Updates
     
@@ -216,6 +243,25 @@ class AudioPlayer: UIView {
     }
     
     
+    //MARK: Audio Player Notifications
+    
+    func playerItemDidFinishPlayer(notification: NSNotification)
+    {
+        print("Playback Did Finish.")
+        self.pause()
+        self.seekToTime(0.0)
+    }
+    
+    func playerItemPlaybackStalled(notification: NSNotification)
+    {
+        print("Playback Stalled.")
+        self.pause()
+    }
+    
+    func playerItemFailedToPlayToEndTime(notification: NSNotification)
+    {
+        print("Player Item Failed to Play to End Time.")
+    }
     
     //MARK: Extras
     
