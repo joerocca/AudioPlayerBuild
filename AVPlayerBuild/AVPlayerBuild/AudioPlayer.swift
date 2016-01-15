@@ -56,6 +56,7 @@ class AudioPlayer: UIView {
         scrubber.translatesAutoresizingMaskIntoConstraints = false
         scrubber.minimumTrackTintColor = UIColor.whiteColor()
         scrubber.setThumbImage(UIImage(named: "sliderThumb"), forState: .Normal)
+        scrubber.setThumbImage(UIImage(named: "sliderThumbHighlighted"), forState: .Highlighted)
         return scrubber
     }()
     
@@ -66,7 +67,7 @@ class AudioPlayer: UIView {
     var player: AVPlayer?
     var isPaused: Bool = false
     var isScrubbing: Bool = false
-    var updateTimer: NSTimer?
+    private var updateTimer: AnyObject?
 
     
     //MARK: Initialization
@@ -81,14 +82,12 @@ class AudioPlayer: UIView {
     
     }
     
-    init(audioURL: NSURL!)
+    convenience init(audioURL: NSURL!)
     {
-        super.init(frame: CGRectZero)
+        self.init(frame: CGRectZero, audioURL: audioURL)
         
-        self.configureViews()
-        self.configureConstraints()
-        self.configureAudioPlayer(audioURL)
     }
+    
 
     required init?(coder aDecoder: NSCoder)
     {
@@ -108,13 +107,11 @@ class AudioPlayer: UIView {
 
         self.addSubview(self.durationLabel)
         
-        
         self.addSubview(self.timeElapsedLabel)
         
-        
         self.scrubber.addTarget(self, action: "scrubberValueChanged:", forControlEvents: .ValueChanged)
+        self.scrubber.addTarget(self, action: "scrubberTouchEnded:", forControlEvents: .TouchUpInside)
         self.addSubview(self.scrubber)
-        
         
     }
     
@@ -157,18 +154,25 @@ class AudioPlayer: UIView {
     
     func playPauseToggle()
     {
-        self.updateTimer?.invalidate()
-        self.updateTimer = nil
-        
         if !isPaused
         {
             self.playButton.setTitle("Pause", forState: .Normal)
             
-            self.updateTimer = NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: "updateTime", userInfo: nil, repeats: true)
-            
             self.player?.play()
             
             self.isPaused = true
+            
+            if self.updateTimer == nil
+            {
+                self.updateTimer = self.player?.addPeriodicTimeObserverForInterval(CMTime(seconds: Double(1.0), preferredTimescale: 1), queue: nil, usingBlock: { (time) -> Void in
+                    
+                    print(time.seconds)
+                    self.updateTime(time.seconds)
+                    
+                })
+            }
+          
+            
         }
         else
         {
@@ -186,16 +190,26 @@ class AudioPlayer: UIView {
         print(sender.value)
         self.isScrubbing = true
         self.player?.seekToTime(CMTime(seconds: Double(sender.value), preferredTimescale: 1))
+        
+        if updateTimer == nil
+        {
+            self.updateTime(Double(sender.value))
+        }
+    }
+    
+    func scrubberTouchEnded(sender: UISlider)
+    {
+        self.isScrubbing = false
     }
     
     
     //MARK: Audio Player Updates
     
-    func updateTime()
+    func updateTime(secondsElapsed: Double)
     {
         if (!self.isScrubbing)
         {
-            self.scrubber.setValue(Float(self.player!.currentTime().seconds), animated: true)
+            self.scrubber.setValue(Float(secondsElapsed), animated: true)
         }
         self.durationLabel.text = "-\(self.formatSeconds(Float(self.player!.currentItem!.asset.duration.seconds - self.player!.currentTime().seconds)))"
         self.timeElapsedLabel.text = self.formatSeconds(Float(self.player!.currentTime().seconds))
