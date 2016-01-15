@@ -167,7 +167,7 @@ class AudioPlayer: UIView {
             {
                 self.updateTimer = self.player?.addPeriodicTimeObserverForInterval(CMTime(seconds: Double(1.0), preferredTimescale: 1), queue: nil, usingBlock: { (time) -> Void in
                     
-                    print(time.seconds)
+//                    print(time.seconds)
                     self.updateTime(time.seconds)
                     
                 })
@@ -186,7 +186,7 @@ class AudioPlayer: UIView {
     
     func scrubberValueChanged(sender: UISlider)
     {
-        print(sender.value)
+//        print(sender.value)
         
         let scrubberValue = Double(sender.value)
         
